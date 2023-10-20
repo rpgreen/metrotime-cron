@@ -15,13 +15,14 @@ Resources:
       Environment:
         Variables:
           DB_URL: !Ref DbUrl
-  CWSchedule:
-    Type: Schedule
-    Properties:
-      Schedule: 'rate(10 minute)'
-      Name: TestSchedule
-      Enabled: true
+      Events:
+        MetrotimeCron:
+          Type: Schedule
+          Properties:
+            Schedule: 'rate(10 minutes)'
+            Name: MetrotimeCron
+            Enabled: true
 Outputs:
   RustFunction:
     Description: "Lambda Function ARN"
-    Value: !GetAtt RustFunction.Arn
+    Value: !GetAtt MetrotimeCronFunction.Arn
