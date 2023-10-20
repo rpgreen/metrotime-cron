@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: SAM template for Rust binaries
+Resources:
+  RustFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: metrotime-cron/target/lambda/metrotime-cron/
+      Handler: rust.handler
+      Runtime: provided.al2
+  CWSchedule:
+    Type: Schedule
+    Properties:
+      Schedule: 'rate(10 minute)'
+      Name: TestSchedule
+      Enabled: true
+Outputs:
+  RustFunction:
+    Description: "Lambda Function ARN"
+    Value: !GetAtt RustFunction.Arn
