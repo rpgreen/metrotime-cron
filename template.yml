@@ -1,13 +1,20 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: SAM template for Rust binaries
+Parameters:
+  DbUrl:
+    Type: String
+    Description: DB URL
 Resources:
-  RustFunction:
+  MetrotimeCronFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: metrotime-cron/target/lambda/metrotime-cron/
       Handler: rust.handler
       Runtime: provided.al2
+      Environment:
+        Variables:
+          DB_URL: !Ref DbUrl
   CWSchedule:
     Type: Schedule
     Properties:
