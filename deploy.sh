@@ -1,1 +1,1 @@
-sam deploy --profile ryang --stack-name metrotime --resolve-s3 --capabilities CAPABILITY_IAM
+sam deploy --profile ryang --stack-name metrotime --resolve-s3 --capabilities CAPABILITY_IAM --parameter-overrides DbUrl=${DB_URL}
