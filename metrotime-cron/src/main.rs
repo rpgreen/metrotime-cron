@@ -1,17 +1,17 @@
-use aws_lambda_events::event::cloudwatch_events::CloudWatchEvent;use lambda_runtime::{run, service_fn, Error, LambdaEvent};
+use aws_lambda_events::event::cloudwatch_events::CloudWatchEvent;
+use lambda_runtime::{run, service_fn, Error, LambdaEvent};
 
-use std::collections::HashMap;
-use std::fmt;
+use chrono::Utc;
+use futures::TryStreamExt;
 use html_parser::{Dom, Node};
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPoolOptions;
-use futures::TryStreamExt;
 use sqlx::{Connection, PgConnection, Row};
-use chrono::Utc;
+use std::collections::HashMap;
+use std::env;
+use std::fmt;
 use std::str::FromStr;
 use strum_macros::EnumString;
-use std::env;
-
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -33,25 +33,27 @@ async fn function_handler(event: LambdaEvent<CloudWatchEvent>) -> Result<(), Err
 }
 
 pub async fn query_and_save() -> Result<(), Box<dyn std::error::Error>> {
-    let url = "https://www.ttrack.info/api/timetrack/json/";
+    let url = "https://www.metrobus.co.ca/api/timetrack/json/";
 
-    let body = reqwest::get(url)
-        .await?
-        .text()
-        .await?;
+    let body = reqwest::get(url).await?.text().await?;
     let routes: Vec<TimeTrack> = serde_json::from_str(&body)?;
 
-    println!("body: {:#?}", body);
-    println!("routes: {:#?}", &routes);
+    // println!("body: {:#?}", body);
+    // println!("routes: {:#?}", &routes);
 
-    let behind_routes: Vec<&TimeTrack> =
-        routes.iter()
-            .filter(|r| r.gtfs_stop_sequence_status.is_some() && r.gtfs_stop_sequence_status.clone().unwrap() == Status::Behind)
-            .collect();
+    let behind_routes: Vec<&TimeTrack> = routes
+        .iter()
+        .filter(|r| {
+            r.gtfs_stop_sequence_status.is_some()
+                && r.gtfs_stop_sequence_status.clone().unwrap() == Status::Behind
+        })
+        .collect();
 
-    let total_mins_behind: i64 =
-        -1 * behind_routes.iter()
-            .map(|r| r.gtfs_stop_sequence_sched_difference_mins.unwrap()).sum::<i64>();
+    let total_mins_behind: i64 = -1
+        * behind_routes
+            .iter()
+            .map(|r| r.gtfs_stop_sequence_sched_difference_mins.unwrap())
+            .sum::<i64>();
 
     println!("total routes: {}", &routes.len());
     println!("total routes behind: {}", &behind_routes.len());
@@ -113,7 +115,7 @@ enum Status {
 
     #[serde(rename = "NO DATA")]
     #[default]
-    NoData
+    NoData,
 }
 //
 impl fmt::Display for Status {
